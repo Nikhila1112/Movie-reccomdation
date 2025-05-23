@@ -39,6 +39,10 @@ def recommend_movies(movie_title, genre_similarity, top_n=5):
 # Streamlit UI
 def main():
     st.title("🎬 Movie Recommendation System")
+    st.write("App started successfully ✅")  # Add this line for debug
+
+    # rest of your code...
+
 
     try:
         st.write("📥 Loading data...")

@@ -39,22 +39,22 @@ def recommend_movies(movie_title, genre_similarity, top_n=5):
 # Streamlit UI
 def main():
     st.title("🎬 Movie Recommendation System")
-    st.write("App started successfully ✅")  # Add this line for debug
-
-    # rest of your code...
-
+    st.write("✅ App started successfully")
 
     try:
         st.write("📥 Loading data...")
         ratings, movies = load_data()
-
-        # Data shape check
-        st.write(f"✅ Ratings shape: {ratings.shape}")
-        st.write(f"✅ Movies shape: {movies.shape}")
+        st.write(f"✅ Ratings data shape: {ratings.shape}")
+        st.write(f"✅ Movies data shape: {movies.shape}")
 
         data = preprocess(ratings, movies)
+        st.write(f"✅ Merged data shape: {data.shape}")
+
         user_item_matrix = create_user_item_matrix(data)
+        st.write(f"✅ User-item matrix shape: {user_item_matrix.shape}")
+
         genre_similarity = compute_genre_similarity(movies)
+        st.write(f"✅ Genre similarity matrix shape: {genre_similarity.shape}")
 
         movie_list = movies['title'].dropna().unique().tolist()
         selected_movie = st.selectbox("🎞️ Choose a movie you like:", sorted(movie_list))
@@ -66,9 +66,42 @@ def main():
                 st.write(f"{i}. {movie}")
 
     except FileNotFoundError as fnf_error:
-        st.error(f"❌ File not found: {fnf_error}. Make sure 'u.data' and 'u.item' are in the same folder as this script.")
+        st.error(f"❌ File not found: {fnf_error}. Check that 'u.data' and 'u.item' are in the repo.")
     except Exception as e:
         st.error(f"❌ Unexpected error: {e}")
+def main():
+    st.title("🎬 Movie Recommendation System")
+    st.write("✅ App started successfully")
+
+    try:
+        st.write("📥 Loading data...")
+        ratings, movies = load_data()
+        st.write(f"✅ Ratings data shape: {ratings.shape}")
+        st.write(f"✅ Movies data shape: {movies.shape}")
+
+        data = preprocess(ratings, movies)
+        st.write(f"✅ Merged data shape: {data.shape}")
+
+        user_item_matrix = create_user_item_matrix(data)
+        st.write(f"✅ User-item matrix shape: {user_item_matrix.shape}")
+
+        genre_similarity = compute_genre_similarity(movies)
+        st.write(f"✅ Genre similarity matrix shape: {genre_similarity.shape}")
+
+        movie_list = movies['title'].dropna().unique().tolist()
+        selected_movie = st.selectbox("🎞️ Choose a movie you like:", sorted(movie_list))
+
+        if st.button("🎯 Get Recommendations"):
+            recommendations = recommend_movies(selected_movie, genre_similarity)
+            st.subheader("🍿 You might also like:")
+            for i, movie in enumerate(recommendations, 1):
+                st.write(f"{i}. {movie}")
+
+    except FileNotFoundError as fnf_error:
+        st.error(f"❌ File not found: {fnf_error}. Check that 'u.data' and 'u.item' are in the repo.")
+    except Exception as e:
+        st.error(f"❌ Unexpected error: {e}")
+
 
 # Entry point
 if __name__ == "__main__":

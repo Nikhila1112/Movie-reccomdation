@@ -1,0 +1,71 @@
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+import streamlit as st
+
+# Load data
+def load_data():
+    ratings = pd.read_csv('u.data', sep='\t', names=['user_id', 'item_id', 'rating', 'timestamp'])
+    movies = pd.read_csv('u.item', sep='|', encoding='latin-1', header=None,
+                         names=['item_id', 'title', 'release_date', 'video_release_date', 'IMDb_URL',
+                                'unknown', 'Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime',
+                                'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'Musical', 'Mystery',
+                                'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western'])
+    return ratings, movies
+
+# Merge datasets
+def preprocess(ratings, movies):
+    data = pd.merge(ratings, movies[['item_id', 'title', 'Action', 'Comedy', 'Drama', 'Romance', 'Sci-Fi']], on='item_id')
+    return data
+
+# Collaborative Filtering - Build user-item matrix
+def create_user_item_matrix(data):
+    user_item_matrix = data.pivot_table(index='user_id', columns='title', values='rating')
+    return user_item_matrix
+
+# Content-based filtering based on genres
+def compute_genre_similarity(movies):
+    genre_matrix = movies[['Action', 'Comedy', 'Drama', 'Romance', 'Sci-Fi']]
+    similarity = cosine_similarity(genre_matrix)
+    similarity_df = pd.DataFrame(similarity, index=movies['title'], columns=movies['title'])
+    return similarity_df
+
+# Recommend based on input movie
+def recommend_movies(movie_title, genre_similarity, top_n=5):
+    if movie_title not in genre_similarity.columns:
+        return ["Movie not found in dataset."]
+    sim_scores = genre_similarity[movie_title].sort_values(ascending=False)[1:top_n+1]
+    return sim_scores.index.tolist()
+
+# Streamlit UI
+def main():
+    st.title("🎬 Movie Recommendation System")
+
+    try:
+        st.write("📥 Loading data...")
+        ratings, movies = load_data()
+
+        # Data shape check
+        st.write(f"✅ Ratings shape: {ratings.shape}")
+        st.write(f"✅ Movies shape: {movies.shape}")
+
+        data = preprocess(ratings, movies)
+        user_item_matrix = create_user_item_matrix(data)
+        genre_similarity = compute_genre_similarity(movies)
+
+        movie_list = movies['title'].dropna().unique().tolist()
+        selected_movie = st.selectbox("🎞️ Choose a movie you like:", sorted(movie_list))
+
+        if st.button("🎯 Get Recommendations"):
+            recommendations = recommend_movies(selected_movie, genre_similarity)
+            st.subheader("🍿 You might also like:")
+            for i, movie in enumerate(recommendations, 1):
+                st.write(f"{i}. {movie}")
+
+    except FileNotFoundError as fnf_error:
+        st.error(f"❌ File not found: {fnf_error}. Make sure 'u.data' and 'u.item' are in the same folder as this script.")
+    except Exception as e:
+        st.error(f"❌ Unexpected error: {e}")
+
+# Entry point
+if __name__ == "__main__":
+    main()

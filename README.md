@@ -49,12 +49,6 @@ Open the provided `localhost` URL in your browser.
 
 ---
 
-### 📸 Screenshot
-
-> *(Optional: Add a screenshot of your app running here)*
-
----
-
 ### 🧠 How It Works
 
 1. Loads and preprocesses movie data (`overview`, `genres`)
